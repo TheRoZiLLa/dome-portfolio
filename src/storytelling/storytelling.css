@@ -1,0 +1,682 @@
+.storytelling-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background-color: #0E0E0E;
+  overflow: hidden;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 800ms cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.storytelling-container.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.storytelling-container.is-exiting {
+  pointer-events: none;
+}
+
+.storytelling-transition-beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 80;
+  width: 100vw;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scaleX(.02);
+  transform-origin: center;
+  background: linear-gradient(90deg, transparent, rgba(81, 32, 109, .18) 18%, rgba(241, 239, 234, .86) 50%, rgba(81, 32, 109, .18) 82%, transparent);
+  box-shadow: 0 0 18px rgba(122, 63, 160, .42), 0 0 46px rgba(53, 19, 74, .22);
+}
+
+.storytelling-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Progress indicator */
+.storytelling-progress-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #21102D 0%, #69358A 50%, #F1EFEA 100%);
+  width: 0%;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 70;
+  transition: width 80ms linear;
+}
+
+/* ==========================================================================
+   WHITE SCI-FI TACTICAL HUD OVERLAY
+   ========================================================================== */
+
+.scifi-hud-root {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 60;
+  overflow: hidden;
+  perspective: 1100px;
+}
+
+.scifi-hud-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.06s ease-out;
+}
+
+.scifi-hud-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scifi-hud-layer-0 {
+  transform: translateZ(0px);
+}
+
+.scifi-hud-layer-1 {
+  transform: translateZ(24px);
+}
+
+.scifi-hud-layer-2 {
+  transform: translateZ(48px);
+}
+
+/* Top Navigation Bar */
+.hud-top-bar {
+  position: absolute;
+  top: 1.8rem;
+  left: 2.2rem;
+  right: 2.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #FFFFFF;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+}
+
+.hud-top-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  opacity: 0.78;
+}
+
+.hud-crosshair {
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 0.95rem;
+}
+
+.hud-divider {
+  opacity: 0.35;
+}
+
+.hud-sector-tag {
+  color: #B8B8B8;
+}
+
+.hud-top-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.38em;
+  color: rgba(255, 255, 255, 0.92);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.hud-top-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  pointer-events: auto;
+}
+
+/* Audio Waveform Spectrum */
+.hud-waveform {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+
+.hud-waveform.is-active {
+  opacity: 0.85;
+}
+
+.hud-waveform .wave-bar {
+  width: 2px;
+  height: 4px;
+  background: #FFFFFF;
+  border-radius: 1px;
+}
+
+.hud-waveform.is-active .wave-bar:nth-child(1) { animation: wavePulse 0.7s infinite alternate ease-in-out; }
+.hud-waveform.is-active .wave-bar:nth-child(2) { animation: wavePulse 0.5s infinite alternate ease-in-out 0.1s; }
+.hud-waveform.is-active .wave-bar:nth-child(3) { animation: wavePulse 0.9s infinite alternate ease-in-out 0.2s; }
+.hud-waveform.is-active .wave-bar:nth-child(4) { animation: wavePulse 0.6s infinite alternate ease-in-out 0.15s; }
+.hud-waveform.is-active .wave-bar:nth-child(5) { animation: wavePulse 0.8s infinite alternate ease-in-out 0.05s; }
+
+@keyframes wavePulse {
+  0% { height: 3px; }
+  100% { height: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storytelling-container {
+    transition-duration: 220ms;
+  }
+
+  .storytelling-transition-beam {
+    display: none;
+  }
+}
+
+/* Interactive Audio Toggle Button */
+.hud-audio-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 2px;
+  color: rgba(255, 255, 255, 0.72);
+  padding: 0.26rem 0.68rem;
+  font-family: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hud-audio-btn:hover {
+  border-color: rgba(255, 255, 255, 0.85);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hud-audio-btn.is-active {
+  border-color: #69358A;
+  color: #FFFFFF;
+  background: rgba(105, 53, 138, 0.28);
+  box-shadow: 0 0 10px rgba(105, 53, 138, 0.4);
+}
+
+/* 4-Corner Reticles */
+.hud-corner {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  color: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+.hud-corner .corner-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hud-corner-tl { top: 2.2rem; left: 2.2rem; }
+.hud-corner-tr { top: 2.2rem; right: 2.2rem; }
+.hud-corner-bl { bottom: 2.2rem; left: 2.2rem; }
+.hud-corner-br { bottom: 2.2rem; right: 2.2rem; }
+
+/* Bottom Status Bar */
+.hud-bottom-bar {
+  position: absolute;
+  bottom: 1.8rem;
+  left: 2.2rem;
+  right: 2.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+}
+
+.hud-bottom-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.hud-gyro-dial {
+  width: 24px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.hud-gyro-dial .gyro-svg {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.15s ease-out;
+}
+
+.hud-coord-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-coord-info .coord-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  opacity: 0.45;
+}
+
+.hud-coord-info .coord-val {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hud-bottom-right {
+  display: flex;
+  align-items: center;
+}
+
+.hud-velocity-widget {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hud-velocity-widget .vel-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  opacity: 0.45;
+}
+
+.hud-velocity-widget .vel-bar-track {
+  width: 72px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.hud-velocity-widget .vel-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #FFFFFF;
+  transition: width 0.05s linear;
+}
+
+.hud-velocity-widget .vel-val {
+  color: rgba(255, 255, 255, 0.85);
+  min-width: 68px;
+  text-align: right;
+}
+
+/* ==========================================================================
+   CENTER TACTICAL VIEWFINDER (REFERENCE HERO ELEMENT)
+   ========================================================================== */
+
+.hud-viewfinder-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(82vw, 1100px);
+  height: min(54vh, 580px);
+}
+
+.hud-viewfinder-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.1));
+}
+
+.vf-frame-path {
+  stroke: rgba(255, 255, 255, 0.48);
+  stroke-width: 1px;
+  fill: none;
+  transition: stroke 0.4s ease, filter 0.4s ease;
+}
+
+.vf-grip-bracket {
+  fill: #FFFFFF;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.35));
+  transition: fill 0.4s ease;
+}
+
+.vf-accent-line {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1px;
+}
+
+/* Viewfinder Header (Top-Left: + URBAN SYSTEMS) */
+.vf-header {
+  position: absolute;
+  top: -1.75rem;
+  left: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #FFFFFF;
+}
+
+.vf-header-plus {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  line-height: 1;
+}
+
+.vf-header-title {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  line-height: 1;
+}
+
+/* Viewfinder Status Indicators (Top-Right: ■ □) */
+.vf-status-indicators {
+  position: absolute;
+  top: -1.4rem;
+  right: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #FFFFFF;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+
+.vf-sq {
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.vf-sq-solid {
+  color: #FFFFFF;
+}
+
+.vf-sq-hollow {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.vf-status-code {
+  color: rgba(255, 255, 255, 0.85);
+  margin-left: 0.2rem;
+}
+
+/* Viewfinder Telemetry Box (Bottom-Right Monospace) */
+.vf-telemetry-box {
+  position: absolute;
+  right: 1.0rem;
+  bottom: -4.2rem;
+  max-width: 480px;
+  text-align: right;
+}
+
+.vf-telemetry-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1.48;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.68);
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.95);
+  margin: 0;
+}
+
+/* ==========================================================================
+   CENTER OPTICAL RETICLE & 3D SPATIAL LOCK-ON
+   ========================================================================== */
+
+/* Center Target Diamond */
+.hud-center-diamond {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  opacity: 0.62;
+  transition: opacity 0.3s;
+}
+
+.hud-center-diamond .diamond-shape {
+  width: 14px;
+  height: 14px;
+  border: 1.2px solid rgba(255, 255, 255, 0.85);
+  transform: rotate(45deg);
+  margin: 5px;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+}
+
+.hud-center-diamond .diamond-chevron {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  background: #FFFFFF;
+  border-radius: 50%;
+}
+
+/* Dynamic 3D Spatial Lock-On Reticle */
+.hud-spatial-lock {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 72px;
+  height: 72px;
+  margin-left: -36px;
+  margin-top: -36px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.45));
+  will-change: transform;
+}
+
+.lock-bracket {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #FFFFFF;
+  border-style: solid;
+}
+
+.lock-bracket-tl { top: 0; left: 0; border-width: 1.5px 0 0 1.5px; }
+.lock-bracket-tr { top: 0; right: 0; border-width: 1.5px 1.5px 0 0; }
+.lock-bracket-bl { bottom: 0; left: 0; border-width: 0 0 1.5px 1.5px; }
+.lock-bracket-br { bottom: 0; right: 0; border-width: 0 1.5px 1.5px 0; }
+
+.lock-center-cross {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px;
+  background: #FFFFFF;
+  border-radius: 50%;
+}
+
+.lock-tag {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: #FFFFFF;
+  background: rgba(14, 14, 14, 0.75);
+  padding: 2px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 1px;
+}
+
+/* Corrupted Data Stream Overlay (Phase 2) */
+.hud-glitch-stream {
+  position: absolute;
+  top: 5.5rem;
+  left: 2.5rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: #FF5577;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(255, 85, 119, 0.7);
+}
+
+.glitch-line {
+  margin-bottom: 3px;
+}
+
+/* ==========================================================================
+   NARRATIVE HUD EVOLUTION PHASES
+   ========================================================================== */
+
+/* Phase: Tactical (Cold, razor-sharp white) */
+.scifi-hud-root.phase-tactical .vf-frame-path {
+  stroke: rgba(255, 255, 255, 0.48);
+}
+
+/* Phase: Glitch (Degradation & Chromatic Distortion) */
+.scifi-hud-root.phase-glitch .vf-frame-path {
+  stroke: rgba(255, 120, 150, 0.65);
+  animation: hudJitter 0.2s infinite;
+}
+
+.scifi-hud-root.phase-glitch .vf-header-title {
+  text-shadow: 2px 0 0 rgba(255, 50, 90, 0.75), -2px 0 0 rgba(50, 220, 255, 0.75);
+}
+
+.scifi-hud-root.phase-glitch .vf-grip-bracket {
+  fill: #FFAAA0;
+}
+
+@keyframes hudJitter {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Phase: Reboot ("แต่ผมยังทำต่อ" Signature Purple Surge) */
+.scifi-hud-root.phase-reboot .vf-frame-path {
+  stroke: #9B51E0;
+  filter: drop-shadow(0 0 14px rgba(155, 81, 224, 0.85));
+  stroke-width: 1.5px;
+}
+
+.scifi-hud-root.phase-reboot .vf-grip-bracket {
+  fill: #9B51E0;
+  filter: drop-shadow(0 0 12px rgba(155, 81, 224, 0.9));
+}
+
+.scifi-hud-root.phase-reboot .vf-header-title {
+  color: #F1EFEA;
+  text-shadow: 0 0 14px rgba(155, 81, 224, 0.9);
+}
+
+/* Phase: Celestial (Pristine Celestial Gold & White) */
+.scifi-hud-root.phase-celestial .vf-frame-path {
+  stroke: rgba(241, 239, 234, 0.82);
+  filter: drop-shadow(0 0 12px rgba(241, 239, 234, 0.45));
+}
+
+.scifi-hud-root.phase-celestial .vf-grip-bracket {
+  fill: #F1EFEA;
+  filter: drop-shadow(0 0 14px rgba(241, 239, 234, 0.75));
+}
+
+.scifi-hud-root.phase-celestial .vf-header-title {
+  color: #F1EFEA;
+  text-shadow: 0 0 14px rgba(241, 239, 234, 0.65);
+}
+
+.scifi-hud-root.phase-celestial .hud-top-center {
+  color: #F1EFEA;
+  text-shadow: 0 0 12px rgba(241, 239, 234, 0.5);
+}
+
+/* Responsive Scaling */
+@media (max-width: 900px) {
+  .hud-top-bar {
+    left: 1.2rem;
+    right: 1.2rem;
+    top: 1.2rem;
+  }
+  .hud-top-center {
+    display: none;
+  }
+  .hud-corner-tl { top: 1.2rem; left: 1.2rem; }
+  .hud-corner-tr { top: 1.2rem; right: 1.2rem; }
+  .hud-corner-bl { bottom: 1.2rem; left: 1.2rem; }
+  .hud-corner-br { bottom: 1.2rem; right: 1.2rem; }
+  .hud-bottom-bar {
+    left: 1.2rem;
+    right: 1.2rem;
+    bottom: 1.2rem;
+  }
+  .hud-viewfinder-container {
+    width: 88vw;
+    height: 48vh;
+  }
+  .vf-telemetry-box {
+    max-width: 280px;
+    bottom: -5.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storytelling-container {
+    transition: opacity 300ms ease;
+  }
+  .scifi-hud-stage {
+    transform: none !important;
+  }
+  .scifi-hud-root.phase-glitch .vf-frame-path {
+    animation: none;
+  }
+}

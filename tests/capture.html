@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Storytelling Frame Capture</title>
+</head>
+<body>
+  <div id="status">Starting</div>
+  <script type="module">
+    async function sendLog(msg) {
+      try {
+        await fetch('http://127.0.0.1:9999/log', {
+          method: 'POST',
+          body: typeof msg === 'string' ? msg : JSON.stringify(msg)
+        });
+      } catch (e) {}
+    }
+
+    window.onerror = (msg, url, line) => {
+      sendLog(`WINDOW ERROR: ${msg} (${url}:${line})`);
+    };
+    window.onunhandledrejection = (e) => {
+      sendLog(`PROMISE REJECTION: ${e.reason?.message || e.reason}`);
+    };
+
+    async function run() {
+      const params = new URLSearchParams(window.location.search);
+      const progress = parseFloat(params.get('p') || '0.18');
+      const filename = params.get('file') || '/tmp/captured_frame.png';
+
+      await sendLog(`1. Starting capture for p=${progress}`);
+
+      const { createStorytelling } = await import('/src/storytelling/index.js');
+      await sendLog('2. Imported createStorytelling');
+
+      const controller = await createStorytelling({
+        initialProgress: progress,
+        autoMount: true
+      });
+      await sendLog('3. Controller initialized');
+
+      // Wait a few frames
+      for (let i = 0; i < 20; i++) {
+        await new Promise(r => requestAnimationFrame(r));
+      }
+      await sendLog('4. 20 frames rendered');
+
+      const canvas = document.querySelector('.storytelling-canvas');
+      if (!canvas) {
+        await sendLog('ERROR: Canvas not found');
+        return;
+      }
+
+      await sendLog(`5. Canvas size: ${canvas.width}x${canvas.height}`);
+      const dataUrl = canvas.toDataURL('image/png');
+      await sendLog(`6. DataUrl length: ${dataUrl.length}`);
+
+      const res = await fetch('http://127.0.0.1:9999/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: filename, data: dataUrl })
+      });
+      const json = await res.json();
+      await sendLog(`7. Save response: ${JSON.stringify(json)}`);
+    }
+
+    run().catch(err => {
+      sendLog(`RUN FATAL: ${err.message}\n${err.stack}`);
+    });
+  </script>
+</body>
+</html>

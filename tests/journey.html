@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Journey browser checks</title></head>
+<body style="font:16px monospace;background:#eee;color:#111"><button id="run">Run journey checks</button><pre id="results">Ready</pre>
+<iframe id="scene" style="width:800px;height:600px;border:0" title="Journey test scene"></iframe>
+<script type="module">
+const out=document.querySelector('#results'), frame=document.querySelector('#scene');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function until(check,timeout=8000){const start=performance.now();while(!check()&&performance.now()-start<timeout)await wait(50);}
+async function scene(reduced=false,tall=false){
+  frame.srcdoc=`<!doctype html><html><head><link rel="stylesheet" href="/src/style.css"></head><body>
+  <main class="opening" style="${tall?'min-height:1800px;':''}"><h1 class="wordmark" data-word="DOME"><span class="glyph">D</span><span class="glyph">O</span><span class="glyph">M</span><span class="glyph">E</span></h1><img class="hero-image" src="/dOME.png"></main>
+  <script type="module">import {createJourneyTransition} from '/src/journey/index.js';window.completed=0;window.journey=createJourneyTransition(document.querySelector('main'),{motionPreference:{matches:${reduced}},onComplete:()=>window.completed++});<\/script></body></html>`;
+  await new Promise(r=>frame.onload=r);for(let i=0;i<100&&!frame.contentWindow.journey;i++)await wait(30);
+  return frame.contentWindow;
+}
+function wheel(w,delta=80,mode=0){w.dispatchEvent(new w.WheelEvent('wheel',{deltaY:delta,deltaMode:mode,cancelable:true}));}
+async function burst(w,count=6){for(let i=0;i<count;i++){wheel(w);await wait(35);}}
+function assert(value,label){if(!value)throw new Error(label);out.textContent+='PASS '+label+'\n';}
+document.querySelector('#run').onclick=async()=>{
+  out.textContent='';
+  try {
+    let w=await scene();
+    assert(w.journey.state==='IDLE','idle does not auto-start');
+    wheel(w);await wait(100);assert(w.journey.state==='PULLING','wheel reveals invitation');
+    await until(()=>w.journey.state==='IDLE');assert(w.journey.state==='IDLE','release below threshold springs back');
+    assert(w.document.querySelector('main').style.transform==='','original transform restored');
+    await burst(w);assert(['ARMED','FORMATION'].includes(w.journey.state),'deliberate pull locks transition');
+    wheel(w,-900);assert(w.journey.state!=='IDLE','reverse input cannot cancel locked transition');
+    await until(()=>w.journey.transitionComplete);assert(w.journey.transitionComplete,'cinematic completes');
+    assert(w.completed===1,'completion callback fires once');
+    assert(w.document.querySelectorAll('canvas').length===0,'canvas disposed');
+    assert(w.getComputedStyle(w.document.body).backgroundColor==='rgb(14, 14, 14)','blank destination background');
+    assert(w.document.querySelector('main').hidden&&!w.document.querySelector('.journey-invitation'),'hero and invitation removed from view');
+    w=await scene(true);await burst(w);await until(()=>w.journey.transitionComplete);
+    assert(w.journey.transitionComplete&&w.completed===1,`reduced motion retains pull navigation (${w.journey.state}, callbacks ${w.completed})`);
+    assert(!w.document.querySelector('canvas'),'reduced motion skips WebGL');
+    w=await scene(false,true);wheel(w);assert(w.journey.state==='IDLE','normal page scroll not intercepted');
+    w.scrollTo(0,1800);wheel(w);assert(w.journey.state==='IDLE','arrival momentum does not activate pull');
+    await wait(220);wheel(w);assert(w.journey.state==='PULLING','new gesture at bottom permits pull');
+    w.journey.destroy();assert(!w.document.querySelector('.journey-invitation'),'destroy removes controls');
+    w=await scene(true);
+    const touch=(type,y)=>{const e=new w.Event(type,{cancelable:true});Object.defineProperty(e,'touches',{value:y===null?[]:[{clientY:y}]});w.dispatchEvent(e);};
+    touch('touchstart',550);touch('touchmove',510);touch('touchend',null);await until(()=>w.journey.state==='IDLE');
+    assert(w.journey.state==='IDLE','touch release springs back');
+    touch('touchstart',550);for(let y=500;y>=200;y-=50)touch('touchmove',y);touch('touchend',null);await until(()=>w.journey.transitionComplete);
+    assert(w.journey.transitionComplete,'upward touch pull activates');
+    out.textContent+='ALL CHECKS PASSED';
+  }catch(e){out.textContent+='FAIL '+e.stack;}
+};
+</script></body></html>

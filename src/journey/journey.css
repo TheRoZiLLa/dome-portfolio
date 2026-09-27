@@ -1,0 +1,20 @@
+html { overscroll-behavior-y: none; }
+body { overflow-x: hidden; overflow-y: auto; }
+.opening { background: #0e0e0e; z-index: 1; }
+.journey-invitation {
+  --reveal: 0; --blur: 10px; --tracking: .15em; --lift: 0px;
+  position: fixed; bottom: var(--lift); left: 50%; z-index: 0;
+  transform: translateX(-50%); margin: 0; padding: 10px;
+  border: 0; border-radius: 0; background: none; color: #eeece9;
+  font: 400 12px/1.5 Arial, sans-serif; letter-spacing: var(--tracking);
+  white-space: nowrap; opacity: var(--reveal); filter: blur(var(--blur));
+  cursor: pointer;
+}
+.journey-invitation:focus-visible {
+  z-index: 5; bottom: 32px; opacity: 1; filter: none;
+  outline: 1px solid #777; outline-offset: 8px;
+}
+.journey-invitation.is-armed { color: #fff; }
+.journey-invitation.is-leaving { opacity: 0; transition: opacity .25s; }
+.journey-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+.opening[hidden] { display: none; }
