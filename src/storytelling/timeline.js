@@ -105,15 +105,6 @@ export function createJourneyTimeline(sceneContext, hudElement, progressLineElem
     texts.scene02B.material.opacity = s2BFade;
     texts.scene02B.position.y = (texts.scene02B.userData.baseY ?? 2.2) + (1.0 - Math.min(s2BFade * 1.5, 1.0)) * -0.4;
 
-    // Broken "สำเร็จ" Structure
-    const s2StructFade = smoothRange(p, 0.10, 0.17, 0.21, 0.28);
-    texts.structureSuccess.userData.mainText.material.opacity = s2StructFade * 0.95;
-    texts.structureSuccess.userData.wireMesh.material.opacity = s2StructFade * 0.32;
-    texts.structureSuccess.userData.shardGroup.children.forEach((shard) => {
-      shard.rotation.x += 0.008;
-      shard.rotation.y += 0.012;
-    });
-
     // fail2, fail3, fail4 emerge at distinct depths with silky ramps
     artifacts.fail2.userData.imgMat.uniforms.uOpacity.value = smoothRange(p, 0.12, 0.22, 0.34, 0.40);
     artifacts.fail3.userData.imgMat.uniforms.uOpacity.value = smoothRange(p, 0.16, 0.28, 0.46, 0.52);

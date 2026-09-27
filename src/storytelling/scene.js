@@ -158,10 +158,6 @@ export async function createStorytellingScene(container) {
   textScene02B.userData.baseY = 2.2;
   scene.add(textScene02B);
 
-  // Incomplete "สำเร็จ" Monumental Sculpture
-  const structureSuccess = createIncompleteSuccessStructure();
-  structureSuccess.position.set(-2.5, -1.0, -142);
-  scene.add(structureSuccess);
 
   // Scene 03: "บางงานถูกทิ้ง"
   const textScene03 = createTextPlane('บางงานถูกทิ้ง', {
@@ -321,7 +317,6 @@ export async function createStorytellingScene(container) {
       scene01: textScene01,
       scene02A: textScene02A,
       scene02B: textScene02B,
-      structureSuccess,
       scene03: textScene03,
       scene04: textScene04,
       scene05: textScene05,
