@@ -7,7 +7,7 @@ varying vec2 vUv;
 uniform sampler2D uType, uPortrait;
 uniform vec2 uResolution, uCenter;
 uniform float uTime, uGravity, uEventHorizon, uSuction, uFisheye;
-uniform float uChromatic, uGlitch, uImpact, uFormation, uCamera, uPull;
+uniform float uChromatic, uGlitch, uImpact, uFormation, uCamera, uPull, uBlackout;
 float hash(float p){return fract(sin(p*127.1)*43758.5453);}
 vec4 sampleLayer(sampler2D image, vec2 uv){
   if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return vec4(0.);
@@ -84,5 +84,7 @@ void main(){
   float horizon=1.-smoothstep(radius*.91,radius+ .002,r);
   color=mix(color,vec3(.004,.002,.006),horizon*uFormation);
   color+= (hash(dot(gl_FragCoord.xy,vec2(1.,137.))+floor(uTime*24.))-.5)*.008*uGravity;
+  // Fade entire frame to #0E0E0E for seamless storytelling handoff
+  color=mix(color,vec3(14./255.),uBlackout);
   gl_FragColor=vec4(color,1.);
 }`;

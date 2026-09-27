@@ -75,7 +75,7 @@ export function createJourneyTransition(hero, { onComplete = () => {}, motionPre
     if(destroyed){renderer?.dispose();return;}
     setState('FORMATION');
     invitation.classList.add('is-leaving');
-    const values={Time:0,Gravity:0,EventHorizon:.002,Suction:0,Fisheye:0,Chromatic:0,Glitch:0,Impact:0,Formation:0,Camera:1,Pull:position};
+    const values={Time:0,Gravity:0,EventHorizon:.002,Suction:0,Fisheye:0,Chromatic:0,Glitch:0,Impact:0,Formation:0,Camera:1,Pull:position,Blackout:0};
     if(renderer){renderer.render(values);hero.style.visibility='hidden';}
     const start=performance.now(); let hiddenAt=0, pauseDuration=0;
     function cinematic(now){
@@ -100,6 +100,8 @@ export function createJourneyTransition(hero, { onComplete = () => {}, motionPre
         const burst=(Math.floor(t*23)%11===0 || (impact>.5&&Math.floor(t*31)%5===0));
         values.Glitch=t>2.8&&burst?force*.8:0;
         values.Impact=impact; values.Pull=position*(1-smooth(t/1.05));
+        // Seamless handoff: fade entire frame to #0E0E0E in last 0.5s before complete()
+        values.Blackout=smooth(clamp((t-3.9)/0.5));
         renderer.render(values);
       }
       raf=requestAnimationFrame(cinematic);
@@ -108,10 +110,23 @@ export function createJourneyTransition(hero, { onComplete = () => {}, motionPre
   }
   function complete(){
     setState('COMPLETE'); cancelAnimationFrame(raf); clearTimeout(releaseTimer);
-    hero.hidden=true; hero.style.visibility='hidden'; invitation.remove(); renderer?.dispose(); renderer=null;
     animations.forEach(a=>a.cancel());
+    hero.hidden=true; hero.style.visibility='hidden'; invitation.remove();
+    // Set body background to solid black immediately so it shows through any canvas fade
     document.body.style.background='#0E0E0E'; document.body.style.overflow='hidden';
-    controller.abort(); onComplete(); window.dispatchEvent(new CustomEvent('journey:complete'));
+    controller.abort(); window.dispatchEvent(new CustomEvent('journey:complete'));
+    if(renderer){
+      // Fade canvas to black smoothly over ~300ms before disposing
+      const c=renderer.canvas;
+      c.style.transition='opacity 320ms ease-in';
+      c.style.opacity='0';
+      const onDone=()=>{ renderer?.dispose(); renderer=null; onComplete(); };
+      c.addEventListener('transitionend', onDone, { once:true });
+      // Safety fallback in case transitionend doesn't fire
+      setTimeout(()=>{ renderer?.dispose(); renderer=null; onComplete(); }, 420);
+    } else {
+      onComplete();
+    }
   }
   listen(window,'wheel',e=>{
     if(locked()){e.preventDefault();return;}

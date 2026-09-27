@@ -32,7 +32,7 @@ export async function createJourneyCanvas(hero, pull) {
     const pos = gl.getAttribLocation(program, 'position');
     gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
     const uniforms = {};
-    for (const name of ['Time','Gravity','EventHorizon','Suction','Fisheye','Chromatic','Glitch','Impact','Formation','Camera','Pull','Resolution','Center']) uniforms[name] = gl.getUniformLocation(program, 'u'+name);
+    for (const name of ['Time','Gravity','EventHorizon','Suction','Fisheye','Chromatic','Glitch','Impact','Formation','Camera','Pull','Blackout','Resolution','Center']) uniforms[name] = gl.getUniformLocation(program, 'u'+name);
     const ratio = Math.min(devicePixelRatio || 1, 1.5);
     const width = innerWidth, height = innerHeight;
     canvas.width = Math.round(width*ratio); canvas.height = Math.round(height*ratio);
